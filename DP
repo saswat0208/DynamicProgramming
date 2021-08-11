@@ -865,6 +865,193 @@ int GetMinSquares(int n)
         return dp[0][0];
     }
     
-//game theory 
-//lcs 3 string
+//game theory (Predict the winner)
+int solve(vector<int> &nums , int i , int j , unordered_map<string , int> &dp)
+    {
+        string key = to_string(i) +  to_string(j) + to_string(tur);
+        if(i>j)
+            return 0;
+        if(i == j)
+        {
+            return nums[i];
+        }
+        
+        if(dp.find(key) != dp.end())
+            return dp[key];
+        
+        dp[key] = max(nums[i] - solve(nums,i+1,j,dp) , nums[j] - solve(nums,i,j-1,dp));
+        
+        return dp[key];
+    }
+    
+    bool PredictTheWinner(vector<int>& nums) {
+        unordered_map<string,int>dp;
+        
+        int i = 0 ;
+        int  j = nums.size() - 1;
+        
+        int chance = 0;
+        
+        return solve(nums,i,j,dp,0) >= 0 ? true : false;
+        
+        
+    }
 
+//lcs 3 string
+int lcs(string a , string b , string c)
+{
+    int x = a.size();
+    int y = b.sizee();
+    int z = c.size();
+    
+    int dp[x+1][y+1][z+1];
+    
+    for(int i = 0 ; i <= x ; i++)
+    {
+        for(int j = 0 ; j <= y ; j++)
+        {
+            for(int k = 0 ; k <= z ; k++)
+            {
+                if(i == 0 && j == 0 && k == 0)
+                    dp[i][j][k] = 0;
+                if(a[i-1] == b[j-1] && b[j-1] == c[k - 1])
+                    dp[i][j][k] = 1 + dp[i-1][j-1][k-1];
+                else
+                {
+                    dp[i][j][k] = max(dp[i][j][k-1] , max(dp[i][j-1][k] , dp[i-1][j][k]);
+                }
+            }
+        }
+    }
+    return dp[x][y][z];
+}
+
+
+//interleafing
+
+using namespace std;
+bool areInterwoven(string one, string two, string three, int i, int j,vector<vector<int>> &cache);
+// O(nm) time | O(nm) space - where n is the length of the
+// first string and m is the length of the second string
+bool interweavingStrings(string one, string two, string three) {
+  if (three.size() != one.size() + two.size()) {
+    return false;
+  }
+  vector<vector<int>> cache;
+  for (int i = 0; i < one.size() + 1; i++) {
+    cache.push_back(vector<int>{});
+    for (int j = 0; j < two.size() + 1; j++) {
+      cache[i].push_back(-1);
+    }
+  }
+  return areInterwoven(one, two, three, 0, 0, cache);
+}
+bool areInterwoven(string one, string two, string three, int i, int j,
+                   vector<vector<int>> &cache) {
+  if (cache[i][j] != -1)
+    return cache[i][j];
+  int k = i + j;
+  if (k == three.size())
+    return true;
+	
+  if (i < one.size() && one[i] == three[k]) {
+    cache[i][j] = areInterwoven(one, two, three, i + 1, j, cache);
+    if (cache[i][j] == true)
+      return true;
+  }
+  if (j < two.size() && two[j] == three[k]) {
+    cache[i][j] = areInterwoven(one, two, three, i, j + 1, cache);
+    return cache[i][j];
+  }
+  cache[i][j] = false;
+  return false
+
+//interleaving string
+int solve(string a , string b , string c , int i , int j , int k , vector<vector<int>> &dp)
+{
+    //base case
+    if(k == c.size())
+        return 1;
+    // if(i > a.size() || j > b.size())
+    //     return false;
+    
+    if(dp[i][j] != -1)
+        return dp[i][j];
+    
+    if(a[i] == c[k])
+    {
+        dp[i][j] = solve(a,b,c,i+1,j,k+1,dp);
+    }
+    else
+    {
+        dp[i][j] = solve(a,b,c,i,j+1,k+1,dp);
+    }
+    return dp[i][j];
+}
+int interleaving(string a , string b , string c)
+{
+    int n1 , n2 , n3;
+    n1 = a.size();
+    n2 = b.size();
+    n3 = c.size();
+    int i , j , k;
+    i = j = k = 0;
+    
+    if(n1 + n2 != n3)
+        return false;
+    
+    vector<vector<int>> dp(n1,vector<int>(n2 , -1));
+    return solve(a,b,c,i,j,k,dp);
+}
+
+//jump game 3 
+
+bool canReach(vector<int>& arr, int start) {
+        queue<int>q;
+        int n = arr.size();
+        vector<int> vis(n,false);
+        
+        q.push(start);
+        
+        while(!q.empty())
+        {
+            int i = q.front();
+            q.pop();
+            if(vis[i] == true)
+                continue;
+            vis[i] = true;
+            if(arr[i] == 0)
+                return true;
+            
+            if(i - arr[i] >= 0)
+            {
+                q.push(i - arr[i]);
+            }
+            if(i + arr[i] < n)
+            {
+                q.push(i + arr[i]);
+            }
+        }
+        return false;
+    }
+    
+//scramble string
+
+bool solve(string a , string b ,unordered_map<int> &dp)
+{
+    if(a.size() == 1)
+        return true;
+    int n = a.size();
+    string key = a + " " + b;
+    if(dp.find(key) != dp.end())
+        return dp[key];
+    
+    for(int k = 1 ; k < n ; k++)
+    {
+        bool unswaped = solve(a.substr(0,k) , b.substr(0,k) , dp) && solve(a.substr(k , n - k) , b.substr(k , n - k) , dp);
+        bool swaped = solve(a.substr(0,k) , b.substr(k , n - k) , dp) && solve(a.substr(k , n - k) , b.substr(0 , k) , dp);
+        if(swaped | unswaped)
+            return dp[key] = true;
+    }
+    return dp[key] = false;
+}
